@@ -503,14 +503,18 @@ stream <- TwitterStream(_CONSUMER_KEY, _CONSUMER_SECRET, _ACCESS_TOKEN, _ACCESS_
 
 firebase <- Firebase(FIREBASE_URL, null);
 
-// Strip hashtags as if they were comments
+// Strip RT, @mention, hashtags
 // Also strips whitespace
 function stripTags(text) {
     local ignore = 0;
     local output = "";
-    for (local i=0; i < text.len(); i+= 1) {
+    local start = 0;
+    if (text.len() > 2 && text[0].tochar() == "R" && text[1].tochar() == "T" && text[2].tochar() == " ") {
+        start = 3;
+    }
+    for (local i=start; i < text.len(); i+= 1) {
         local c = text[i].tochar();
-        if (c == "#") {
+        if (c == "#" || c == "@") {
             ignore = 1;
         }
         else if (c == " " || c == "\n" || c == "\r" || c == "\t") {
