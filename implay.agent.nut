@@ -531,16 +531,23 @@ function stripTags(text) {
 function handleState(songtext, callback) {  
     songtext = stripTags(songtext);
 
-    firebase.read("/songs/" + songtext, function(data) {
-        local state = songtext;
-        if (data) { //if song found, use the data instead
-            server.log("got data: " + data);
-            state = data;
-        }
-        server.log("sending song: " + state);
-        device.send("play",state);
-        callback(state);
-    });
+    if (songtext.len() < 32) {
+        firebase.read("/songs/" + songtext, function(data) {
+            local state = songtext;
+            if (data) { //if song found, use the data instead
+                server.log("got data: " + data);
+                state = data;
+            }
+            server.log("sending song: " + state);
+            device.send("play",state);
+            callback(state);
+        });
+    }
+    else {
+        server.log("sending song: " + songtext);
+        device.send("play",songtext);
+        callback(songtext);
+    }
 }
 
 //access through agent URL
