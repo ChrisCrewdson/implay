@@ -10,9 +10,6 @@
 piezo_pins <- [hardware.pin8, hardware.pin7, hardware.pin5, hardware.pin2];
 led <- hardware.pin9;
 
-NOTES <- [33,35,37,39,41,44,46,49,52,55,58,62,65,69,73,78,82,87,93,98,104,110,117,123,131,139,147,156,165,175,185,196,208,220,233,247,262,277,294,311,330,349,370,392,415,440,466,494,523,554,587,622,659,698,740,784,831,880,932,988,1047,1109,1175,1245,1319,1397,1480,1568,1661,1760,1865,1976,2093,2217,2349,2489,2637,2794,2960,3136,3322,3520,3729,3951,4186,4435,4699,4978,0];
-NOTE_MAP <- { c = 0, cs = 1, d = 2, ds = 3, e = 4, f = 5, fs = 6, g = 7, gs = 8, a = 9, as = 10, b = 11 };
-
 /***************************************************************************
  * Tone/Song Class
  * https://github.com/electricimp/reference/blob/master/hardware/tone/tone.hardware.nut
@@ -110,9 +107,11 @@ class Tone {
     pin = null;
     playing = null;
     wakeup = null;
+    channel = null;
 
-    constructor(_pin) {
+    constructor(_pin,_channel) {
         this.pin = _pin;
+        this.channel = _channel;
         this.playing = false;
     }
     
@@ -120,7 +119,7 @@ class Tone {
         return playing;
     }
     
-    function play(freq, duration = null) {
+    function play(freq, duration = null, duty = 0.5) {
         if (playing) stop();
         
         //AL: Add LED pin writing
@@ -129,7 +128,7 @@ class Tone {
         freq *= 1.0;
         if (freq > 0.0) {
             pin.configure(PWM_OUT, 1.0/freq, 1.0);
-            pin.write(0.5);
+            pin.write(duty);
         }
             playing = true;
         
@@ -155,14 +154,20 @@ class Tone {
 class Song {
     tone = null;
     song = null;
-    flush = false;
+    flush = null;
+    gap = null
     currentIndex = null;
-    
+    duty = null;
+    tempo = null;
     wakeup = null;
     
     constructor(_tone, _song) {
         this.tone = _tone;
         this.song = _song;
+        this.flush = false;
+        this.gap = 0.00;
+        this.duty = 0.5;
+        this.tempo = 120.0 / 60.0;
         this.currentIndex = 0;
     }
     
@@ -178,20 +183,47 @@ class Song {
         this.flush = _flush;
         Next();        
     }
+    function EndSong() {
+        if (this.flush) {
+            server.log("Flushing song");
+            song.flush();
+        }      
+    }
     function Next() {
         if (currentIndex < song.len()) {
-            local n = song[currentIndex];
-            local d = song[currentIndex+1];            
-            if (d > 0) {
-                tone.play(NOTES[n], 1.0/d);
-                wakeup = timer().set(1.0/d + 0.01, Next.bindenv(this));
+            local n = 0
+            local d = 0
+            while (true) {
+                n = song[currentIndex];
+                d = song[currentIndex+1];
                 currentIndex+=2;
+                if (n < 128) { //note command
+                    break;
+                }
+                else if (n == 255) { //set gap time
+                    gap = 0.01 * d.tofloat();
+                }
+                else if (n == 254) { //set duty cycle
+                    duty = 0.1 * d.tofloat();
+                }
+                else if (n == 253) { //set tempo
+                    if (d < 32) d = 32;
+                    tempo =  (60.0 / d.tofloat()) * 4.0;
+                }
+                else { //invalid
+                    EndSong();
+                    break;
+                }
             }
-            else {
-                if (this.flush) {
-                    server.log("Flushing song");
-                    song.flush();
-                }      
+            if (d > 0) {
+                local f = NOTES[n];
+                if (f > 0) {
+                    tone.play(NOTES[n], ((tempo/d) - gap), duty);
+                }
+                wakeup = timer().set(tempo/d, Next.bindenv(this));
+            }
+            else {  //zero duration is end of song
+                EndSong();
             }
         }        
     }
@@ -225,13 +257,16 @@ class Song {
  * IMPLAY Code
  ***************************************************************************/
 
+NOTES <- [33,35,37,39,41,44,46,49,52,55,58,62,65,69,73,78,82,87,93,98,104,110,117,123,131,139,147,156,165,175,185,196,208,220,233,247,262,277,294,311,330,349,370,392,415,440,466,494,523,554,587,622,659,698,740,784,831,880,932,988,1047,1109,1175,1245,1319,1397,1480,1568,1661,1760,1865,1976,2093,2217,2349,2489,2637,2794,2960,3136,3322,3520,3729,3951,4186,4435,4699,4978,0];
+NOTE_MAP <- { c = 0, cs = 1, d = 2, ds = 3, e = 4, f = 5, fs = 6, g = 7, gs = 8, a = 9, as = 10, b = 11 };
+
 led.configure(DIGITAL_OUT_OD);
 led.write(1);
 
 function setupPiezo() {
     piezo <- [];
     for (local i = 0; i < piezo_pins.len(); i += 1) { 
-        piezo.push(Tone(piezo_pins[i]));
+        piezo.push(Tone(piezo_pins[i],i));
     }
     server.log("Piezo channels: "+piezo.len());
 }
@@ -245,7 +280,7 @@ function createSongFromString(songtext) {
     local index = 0;
     local songlen = songtext.len();
     local octave = 5;
-    local dur = 4;
+    local dur = 8;
     local ignore = 0;
     for (local i = 0; i < songtext.len(); i += 1) {
         
@@ -272,8 +307,8 @@ function createSongFromString(songtext) {
                         }
                     }            
                 }
-                songblob.writen(notenum, 'b');
-                songblob.writen(dur, 'b');
+                songblob.writen(notenum, 'b'); //note command
+                songblob.writen(dur, 'b'); //note duration
             }
             //octave down
             else if(cmdname == "<") {
@@ -293,6 +328,41 @@ function createSongFromString(songtext) {
                         i += 1;
                     }
                 }     
+            }
+            //set duty
+            else if(cmdname == "p") {
+                //rudimentary digit parsing!!
+                if (i < songtext.len() - 1) { 
+                    local digit = songtext[i+1];
+                    if (digit >= 48 && digit <= 57) {
+                        songblob.writen(254,'b') //duty change command
+                        songblob.writen(digit.tochar().tointeger(), 'b')
+                        i += 1;
+                    }
+                }     
+            }
+            //set gap time
+            else if(cmdname == "m") {
+                local newgap = ""
+                //rudimentary digit parsing!!
+                if (i < songtext.len() - 1) { 
+                    local digit = songtext[i+1];
+                    if (digit >= 48 && digit <= 57) {
+                        newgap += digit.tochar();
+                        i += 1;
+                        if (i < songtext.len() - 1) { 
+                            local digit2 = songtext[i+1];
+                            if (digit2 >= 48 && digit2 <= 57) {
+                                newgap += digit2.tochar();
+                                i += 1;
+                            }
+                        }
+                    }
+                }
+                if (newgap.len() > 0) {
+                    songblob.writen(255,'b') //gap change command
+                    songblob.writen(newgap.tointeger(), 'b')
+                }
             }
             //set length (duration)
             else if(cmdname == "l") {
@@ -316,7 +386,35 @@ function createSongFromString(songtext) {
                     dur = newlen.tointeger();
                 }
             }
-            //whitespace ends hashtag
+            else if(cmdname == "t") {
+                local newtempo = ""
+                //rudimentary digit parsing!!
+                if (i < songtext.len() - 1) { 
+                    local digit = songtext[i+1];
+                    if (digit >= 48 && digit <= 57) {
+                        newtempo += digit.tochar();
+                        i += 1;
+                        if (i < songtext.len() - 1) { 
+                            local digit2 = songtext[i+1];
+                            if (digit2 >= 48 && digit2 <= 57) {
+                                newtempo += digit2.tochar();
+                                i += 1;
+                                if (i < songtext.len() - 1) { 
+                                    local digit3 = songtext[i+1];
+                                    if (digit3 >= 48 && digit3 <= 57) {
+                                        newtempo += digit3.tochar();
+                                        i += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (newtempo.len() > 0) {
+                    songblob.writen(253,'b') //tempo command
+                    songblob.writen(newtempo.tointeger(), 'b')
+                }
+            }            //whitespace ends hashtag
             else if(cmdname == " " || cmdname == "\n" || cmdname == "\r" || cmdname == "\t") {                
                 ignore = 0;
             }
@@ -331,7 +429,7 @@ function createSongFromString(songtext) {
         }
         
     }
-    songblob.writen(0,'b');
+    songblob.writen(0,'b'); //end of track
     songblob.writen(0,'b');
     return songblob;
     

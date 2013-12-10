@@ -499,6 +499,8 @@ _ACCESS_SECRET <- "";
  * IMPLAY Code
  ***************************************************************************/
  
+ledstatus <- 0; 
+
 stream <- TwitterStream(_CONSUMER_KEY, _CONSUMER_SECRET, _ACCESS_TOKEN, _ACCESS_SECRET);
 
 firebase <- Firebase(FIREBASE_URL, null);
@@ -556,11 +558,11 @@ function httpHandler(request, response) {
         local songtext = request.query.state;
         server.log("received song from HTTP: " + songtext);
         handleState(songtext, function(songtext) {
-           response.send(200, "<title>IMPLAY</title><h1>IMPLAY</h1>Send a song!<br/><form action=/sFI8xfHs_wdd><textarea id=state name=state>"+songtext+"</textarea><br/><input type=submit value=Play>");
+           response.send(200, "<title>IMPLAY</title><h1>IMPLAY</h1>Send a song!<br/><form action="+http.agenturl()+"><textarea id=state name=state>"+songtext+"</textarea><br/><input type=submit value=Play>");
         });
     }
     else {
-       response.send(200, "<title>IMPLAY</title><h1>IMPLAY</h1>Send a song!<br/><form action=/sFI8xfHs_wdd><textarea id=state name=state>"+DEFAULT_SONG+"</textarea><br/><input type=submit value=Play>");
+       response.send(200, "<title>IMPLAY</title><h1>IMPLAY</h1>Send a song!<br/><form action="+http.agenturl()+"><textarea id=state name=state>"+DEFAULT_SONG+"</textarea><br/><input type=submit value=Play>");
     }
 }
 
