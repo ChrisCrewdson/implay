@@ -2,7 +2,8 @@
 
 IMPLAY lets you send music to an array of piezo speakers over the internet
 using the [Electric Imp](http://electricimp.com).  It was created over the
-Electric Imp Hackathon on December 7th, 2013 by Andrew Lim & Bunnie Curtis.
+Electric Imp Hackathon on December 7th, 2013 by Andrew Lim & Bunnie Curtis
+from [IFTTT](http://ifttt.com)
 
 Songs can be stored on [Firebase](https://www.firebase.com).
 
