@@ -65,7 +65,7 @@ as part of the song's name.
 
 * Notes are any letter from a to g `abcdefg`
 * To make a note sharp (+1 half-step or semitone) add an `s` (eg C# is `cs`)
-* `\` rest note
+* `/` rest note
 * `l<length>` sets note length division. Defaults to 8
   `l4` is quarter note, `l8` is eigth note, `l16` sixteenth, etc.
 * `>` increases current octave by 1
