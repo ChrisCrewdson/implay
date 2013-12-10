@@ -1,11 +1,15 @@
 # IMPLAY
 
-IMPLAY lets you send 
+IMPLAY lets you send music to an array of piezo speakers over the internet
+using the [Electric Imp](http://electricimp.com).  It was created over the
+Electric Imp Hackathon on December 7th, 2013 by Andrew Lim & Bunnie Curtis.
+
+Songs can be stored on [Firebase](https://www.firebase.com).
 
 ## Installation
 
-1. Copy `implay.agent.nut` to the agent.
-2. Setup variables
+* Copy `implay.agent.nut` to the agent.
+* Setup variables
 
 ```
     //Hashtag to play on
@@ -24,8 +28,8 @@ IMPLAY lets you send
     _ACCESS_SECRET <- "";
 ```
 
-3. Copy `implay.device.nut` on the device.
-4. Setup the pin variables to match your setup.
+* Copy `implay.device.nut` on the device.
+* Setup the pin variables to match your setup.
    You can change the number of piezos by adding or removing pins to the array.
 
 ```
@@ -34,19 +38,19 @@ IMPLAY lets you send
 ```
 
 
-5. Build & Run!
+* Build & Run!
 
 ## Usage
 
 You can send a song in two ways:
 
-1. Go to your agent's URL and write a song using the text box and `Play`
-2. Tweet a song using the hashtag you provided in `_SEARCH_TERM`,
+* Go to your agent's URL and write a song using the text box and `Play`
+* Tweet a song using the hashtag you provided in `_SEARCH_TERM`,
    all @mentions and #tags will be stripped from input.
 
 ## Song storage on Firebase
 
-You can set predefined songs in firebase.  A sample JSON dump is in 
+You can set predefined songs in Firebase.  A sample JSON dump is in 
 `firebase-samples.json` which you can import into Firebase using the
 `Import JSON` function.
 
@@ -78,3 +82,17 @@ as part of the song's name.
   Larger values give shorter stacatto notes. Defaults to 0
 * `p<duty>` sets pulse duty to `<duty>` * 0.1.
   `p5` is a square wave. Defaults to 5
+
+### Multi-channel
+
+Note that every piezo channel is independent.  Due to the
+nature of the code they might drift apart. All commands
+(octave, tempo, etc.) are set independently.
+
+* `|` Use this to separate tracks (will send commands to different piezos)
+
+#### Example
+
+Sends a C major chords to four piezos
+
+`c|e|g|>c`
