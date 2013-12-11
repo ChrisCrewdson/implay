@@ -61,6 +61,8 @@ as part of the song's name.
 
 ## Music Syntax
 
+The syntax is a very simplified derivative of [MML](http://en.wikipedia.org/wiki/Music_Macro_Language).
+
 ### Basic Commands
 
 * Notes are any letter from a to g `abcdefg`
