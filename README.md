@@ -1,17 +1,18 @@
 # IMPLAY
 
-IMPLAY lets you send music to an array of piezo speakers over the internet
-using the [Electric Imp](http://electricimp.com).  It was created over the
-Electric Imp Hackathon on December 7th, 2013 by Andrew Lim & Bunnie Curtis
-from [IFTTT](http://ifttt.com)
+IMPLAY is an [Electric Imp](http://electricimp.com) project that lets you 
+send music to an array of piezo speakers over the internet.  It was 
+created over the Electric Imp Hackathon on December 7th, 2013 by 
+Andrew Lim & Bunnie Curtis from [IFTTT](http://ifttt.com)
 
-The IMPLAY accepts web requests with music code specified using an 
+IMPLAY accepts web requests with music code specified using an 
 [MML](http://en.wikipedia.org/wiki/Music_Macro_Language)-like syntax.
 
 Additionally, IMPLAY listens for tweets in realtime with a certain hashtag
 and tries to plays them.
 
-Songs can also be pre-defined in [Firebase](https://www.firebase.com) and recalled by name.
+Songs can also be pre-defined in [Firebase](https://www.firebase.com) and
+recalled by name.
 
 ## Installation
 
