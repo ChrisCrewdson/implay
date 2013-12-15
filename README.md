@@ -5,7 +5,13 @@ using the [Electric Imp](http://electricimp.com).  It was created over the
 Electric Imp Hackathon on December 7th, 2013 by Andrew Lim & Bunnie Curtis
 from [IFTTT](http://ifttt.com)
 
-Songs can be stored on [Firebase](https://www.firebase.com).
+The IMPLAY accepts web requests with music code specified using an 
+[MML](http://en.wikipedia.org/wiki/Music_Macro_Language)-like syntax.
+
+Additionally, IMPLAY listens for tweets in realtime with a certain hashtag
+and tries to plays them.
+
+Songs can also be pre-defined in [Firebase](https://www.firebase.com) and recalled by name.
 
 ## Installation
 
