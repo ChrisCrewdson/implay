@@ -1,6 +1,6 @@
 # IMPLAY
 
-IMPLAY is an [Electric Imp](http://electricimp.com) project that lets you 
+IMPLAY is a project that runs on an [Imp card](http://electricimp.com).  IMPLAY lets you 
 send music to an array of piezo speakers over the internet.  It was 
 created over the Electric Imp Hackathon on December 7th, 2013 by 
 Andrew Lim & Bunnie Curtis from [IFTTT](http://ifttt.com)
@@ -15,7 +15,7 @@ Songs can also be pre-defined in [Firebase](https://www.firebase.com) and
 recalled by name.
 
 ## Installation
-
+e
 * Copy `implay.agent.nut` to the agent.
 * Setup variables
 
