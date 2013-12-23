@@ -15,7 +15,7 @@ Songs can also be pre-defined in [Firebase](https://www.firebase.com) and
 recalled by name.
 
 ## Installation
-e
+
 * Copy `implay.agent.nut` to the agent.
 * Setup variables
 
